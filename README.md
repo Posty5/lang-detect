@@ -1119,6 +1119,50 @@ curl http://localhost:3456/page
 
 ---
 
-## License
+## 💻 Requirements
+
+- **Node.js:** >= 16.0.0
+- **TypeScript:** Full type definitions included
+- **Browser:** No native dependencies required
+
+---
+
+## 📖 Resources
+
+- **Website:** [https://posty5.com](https://posty5.com)
+- **Dashboard:** [https://studio.posty5.com](https://studio.posty5.com)
+- **npm:** [https://www.npmjs.com/package/@posty5/lang-detect](https://www.npmjs.com/package/@posty5/lang-detect)
+- **GitHub:** [https://github.com/nicekid1/Posty5-WEB](https://github.com/nicekid1/Posty5-WEB)
+- **Support:** [https://posty5.com/contact-us](https://posty5.com/contact-us)
+
+---
+
+## 🆘 Support
+
+- **Contact Us:** [https://posty5.com/contact-us](https://posty5.com/contact-us)
+- **GitHub Issues:** [Report bugs or request features](https://github.com/nicekid1/Posty5-WEB/issues)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Run tests: `npm test`
+5. Type check: `npm run typecheck`
+6. Commit your changes: `git commit -m 'Add amazing feature'`
+7. Push to the branch: `git push origin feature/amazing-feature`
+8. Open a Pull Request
+
+---
+
+## 📄 License
 
 MIT &copy; [Posty5](https://posty5.com)
+
+---
+
+<p align="center">Made with ❤️ by <a href="https://posty5.com">Posty5</a></p>
