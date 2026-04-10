@@ -44,6 +44,7 @@ One package to detect your user's language from URL paths, query strings, cookie
   - [Step 4 — Use in Components](#step-4--use-in-components)
 - [Usage Guide: Angular (Browser-Only)](#usage-guide-angular-browser-only)
   - [Basic Browser Detection](#basic-browser-detection)
+  - [With Custom IP (Browser)](#with-custom-ip-browser)
   - [With JWT Token (Logged-in User)](#with-jwt-token-logged-in-user)
   - [Angular Service Example](#angular-service-example)
 - [Usage Guide: Any TypeScript / Node.js Service](#usage-guide-any-typescript--nodejs-service)
@@ -138,7 +139,7 @@ The detector runs through stages **in order**. The **first stage that returns a 
 | 4   | `GEO_QUERY`       | Geo code in query string → language | `?locale=eg` → `ar`          | Yes           |
 | 5   | `COOKIE`          | Language stored in cookie           | Cookie `lang=fr` → `fr`      | Yes           |
 | 6   | `USER_LANG`       | Logged-in user's saved preference   | JWT `{ lang: 'ko' }` → `ko`  | Yes           |
-| 7   | `VISITOR_GEO`     | IP → country → language             | IP `41.x.x.x` → EG → `ar`    | Server only   |
+| 7   | `VISITOR_GEO`     | IP → country → language             | IP `41.x.x.x` → EG → `ar`    | Yes (with IP) |
 | 8   | `ACCEPT_LANGUAGE` | Browser/header language preference  | `Accept-Language: es` → `es` | Yes (adapted) |
 | 9   | `DEFAULT`         | Fallback                            | — → `en`                     | Yes           |
 
@@ -269,10 +270,13 @@ function langDetectMiddleware(
 Creates an `IDetectionContext` from an Express `Request` object.
 
 ```ts
-function createExpressContext(req: Request, options?: { userLang?: string | null }): IDetectionContext;
+function createExpressContext(req: Request, options?: {
+  userLang?: string | null;
+  ip?: string | null;
+}): IDetectionContext;
 ```
 
-Extracts `path`, `query`, `cookies`, `headers`, and `ip` (from `x-forwarded-for`, `x-real-ip`, or `req.ip`).
+Extracts `path`, `query`, `cookies`, `headers`, and `ip` (from `x-forwarded-for`, `x-real-ip`, or `req.ip`). Pass `options.ip` to override the auto-detected IP.
 
 ---
 
@@ -281,10 +285,15 @@ Extracts `path`, `query`, `cookies`, `headers`, and `ip` (from `x-forwarded-for`
 Creates an `IDetectionContext` from the browser environment.
 
 ```ts
-function createBrowserContext(options?: { userLang?: string | null }): IDetectionContext;
+function createBrowserContext(options?: {
+  userLang?: string | null;
+  ip?: string | null;
+}): IDetectionContext;
 ```
 
-Reads `window.location`, `document.cookie`, and `navigator.languages`. IP is `null` (server-only stages are skipped).
+Reads `window.location`, `document.cookie`, and `navigator.languages`.
+
+By default, `ip` is `null` and the `VISITOR_GEO` stage is skipped. If you pass an IP (e.g. fetched from an external service), the `VISITOR_GEO` stage will run and detect language based on geo-IP.
 
 ---
 
@@ -720,7 +729,34 @@ console.log(result.detectedBy); // 'COOKIE' or 'ACCEPT_LANGUAGE' etc.
 console.log(result.isRTL); // false
 ```
 
-> **Note:** `VISITOR_GEO` (IP detection) is automatically skipped in browser — no IP is available.
+> **Tip:** To enable `VISITOR_GEO` in the browser, pass an IP address via `options.ip` (see [With Custom IP](#with-custom-ip-browser) below).
+
+### With Custom IP (Browser)
+
+If you want geo-based language detection in the browser, fetch the user's IP from an external service and pass it:
+
+```ts
+import { detectLanguage, createBrowserContext } from "@posty5/lang-detect";
+
+// Fetch user IP from any IP service
+const ip = await fetch("https://api.ipify.org?format=json")
+  .then((r) => r.json())
+  .then((d) => d.ip)
+  .catch(() => null);
+
+const context = createBrowserContext({ ip });
+const result = await detectLanguage(context);
+
+console.log(result.lang);       // 'ar' (if IP maps to Egypt)
+console.log(result.detectedBy); // 'VISITOR_GEO'
+```
+
+You can also use your own backend endpoint:
+
+```ts
+const ip = await fetch("/api/my-ip").then((r) => r.text()).catch(() => null);
+const context = createBrowserContext({ ip, userLang: decoded?.lang });
+```
 
 ### With JWT Token (Logged-in User)
 

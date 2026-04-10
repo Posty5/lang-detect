@@ -6,18 +6,33 @@ import { IDetectionContext } from "../interfaces/context.interface";
 export interface IBrowserContextOptions {
   /** Logged-in user's preferred language (e.g. from decoded JWT token) */
   userLang?: string | null;
+
+  /**
+   * Client IP address for geo-based detection.
+   * In browsers, IP is not available natively — pass it here if you fetched it
+   * from an external service (e.g. `https://api.ipify.org`, your own backend, etc.).
+   * When provided, the VISITOR_GEO stage will be able to run.
+   */
+  ip?: string | null;
 }
 
 /**
  * Create a detection context from the browser environment.
  *
  * Reads `window.location`, `document.cookie`, and `navigator.languages`.
- * IP is not available in browser — VISITOR_GEO stage will be skipped.
+ * IP is not available natively in browsers, but you can pass it via `options.ip`
+ * if you fetched it from an external service. When provided, the VISITOR_GEO
+ * stage will use it for geo-based language detection.
  *
  * @example
- * // In an Angular component or service:
- * const userLang = jwtDecode(token).lang;
- * const context = createBrowserContext({ userLang });
+ * // Basic usage:
+ * const context = createBrowserContext();
+ * const result = await detectLanguage(context);
+ *
+ * @example
+ * // With IP from an external service:
+ * const ip = await fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => d.ip);
+ * const context = createBrowserContext({ ip });
  * const result = await detectLanguage(context);
  */
 export function createBrowserContext(options?: IBrowserContextOptions): IDetectionContext {
@@ -53,7 +68,7 @@ export function createBrowserContext(options?: IBrowserContextOptions): IDetecti
     cookies,
     headers: {},
     userLang: options?.userLang ?? null,
-    ip: null,
+    ip: options?.ip ?? null,
     navigatorLanguages,
   };
 }

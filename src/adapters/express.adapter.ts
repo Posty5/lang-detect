@@ -6,6 +6,13 @@ import { IDetectionContext } from "../interfaces/context.interface";
 export interface IExpressContextOptions {
   /** Logged-in user's preferred language (from DB, JWT, session, etc.) */
   userLang?: string | null;
+
+  /**
+   * Override the auto-detected client IP address.
+   * By default, IP is extracted from `x-forwarded-for`, `x-real-ip`, or `req.ip`.
+   * Pass a custom IP here if you resolve it differently (e.g. from a custom header or external service).
+   */
+  ip?: string | null;
 }
 
 /**
@@ -49,8 +56,8 @@ export function createExpressContext(
     }
   }
 
-  // Extract client IP from common proxy headers
-  const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || (req.headers["x-real-ip"] as string) || req.ip || null;
+  // Use custom IP if provided, otherwise extract from common proxy headers
+  const ip = options?.ip ?? ((req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || (req.headers["x-real-ip"] as string) || req.ip || null);
 
   return {
     path: req.path,
